@@ -1,28 +1,63 @@
+// StatisticsPage.js
 import React from 'react';
 
-function StatisticsPage({ exerciseStats }) {
+function StatisticsPage({ statistics }) {
+    const chapters = Object.keys(statistics).sort();
+
+    // Find the maximum number of sessions for any chapter
+    const maxSessions = Math.max(
+      0,  // Ensure we always have a non-negative number
+      ...chapters.map(chapter => (statistics[chapter] && statistics[chapter].length) || 0)
+    );
+  
+    if (maxSessions === 0) {
+      return (
+        <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-6">Statistics</h1>
+          <p>No practice sessions recorded yet.</p>
+        </div>
+      );
+    }
+    
   return (
-    <div className="max-w-4xl mx-auto bg-white shadow-2xl rounded-lg overflow-hidden">
-      <div className="px-6 py-8">
-        <h2 className="text-2xl font-bold text-gray-800 mb-6">Exercise Statistics</h2>
+    <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <h1 className="text-3xl font-bold text-gray-900 mb-6">Statistics</h1>
+      <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Chapter</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Words</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Wrong Words</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Correct Rate</th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Chapter
+              </th>
+              {[...Array(maxSessions)].map((_, index) => (
+                <th key={index} scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Session {index + 1}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {Object.entries(exerciseStats).map(([chapter, stats]) => (
+            {chapters.map(chapter => (
               <tr key={chapter}>
-                <td className="px-6 py-4 whitespace-nowrap">{chapter}</td>
-                <td className="px-6 py-4 whitespace-nowrap">{stats.total}</td>
-                <td className="px-6 py-4 whitespace-nowrap">{stats.wrong}</td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {((stats.correct / stats.total) * 100).toFixed(2)}%
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  {chapter} (Total: {statistics[chapter][0].total})
                 </td>
+                {[...Array(maxSessions)].map((_, index) => {
+                  const session = statistics[chapter][index];
+                  return (
+                    <td key={index} className="px-6 py-4 whitespace-nowrap ">
+                      {session ? (
+                        <div>
+                            <p className="text-lg text-black-500">{((session.correct / session.total) * 100).toFixed(0)}%</p>
+                            <p className="text-sm text-gray-500">{session.correct}/{session.total}</p>
+                          {/* <p>Correct: {session.correct}</p> */}
+                          {/* <p>Wrong: {session.wrong}</p> */}
+                          
+                        </div>
+                      ) : '-'}
+                    </td>
+                  );
+                })}
               </tr>
             ))}
           </tbody>

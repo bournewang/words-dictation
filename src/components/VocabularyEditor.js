@@ -1,42 +1,83 @@
+// VocabularyEditor.js
 import React, { useState, useEffect } from 'react';
-import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/solid';
+import Papa from 'papaparse';
 
 function VocabularyEditor({ vocabulary, setVocabulary }) {
     const [csvInput, setCsvInput] = useState('');
-    const [message, setMessage] = useState(null);
 
-    // Convert vocabulary object to CSV string
     useEffect(() => {
-        const csvContent = Object.entries(vocabulary).flatMap(([chapter, words]) => 
-            words.map(word => `${chapter},${word.word},${word.meaning}`)
-        ).join('\n');
-        setCsvInput(csvContent);
-    }, [vocabulary]);
+        // Import the CSV file
+        import('../data/vocabulary.csv')
+            .then(module => {
+                // The imported module contains the file path, not the content
+                // We need to fetch the content using this path
+                fetch(module.default)
+                    .then(response => response.text())
+                    .then(csvData => {
+                        Papa.parse(csvData, {
+                            complete: (results) => {
+                                if (results.data && results.data.length > 0) {
+                                    const vocabularyByChapter = results.data
+                                        .filter(row => row.length >= 3) // Ensure each row has at least 3 columns
+                                        .reduce((acc, row) => {
+                                            const chapter = row[0].trim();
+                                            const word = row[1].trim();
+                                            const meaning = row[2].trim();
+
+                                            if (!acc[chapter]) {
+                                                acc[chapter] = [];
+                                            }
+
+                                            acc[chapter].push({ word, meaning });
+                                            return acc;
+                                        }, {});
+
+                                    if (Object.keys(vocabularyByChapter).length > 0) {
+                                        setVocabulary(vocabularyByChapter);
+
+                                        // Create CSV content for display
+                                        const csvContent = Object.entries(vocabularyByChapter)
+                                            .flatMap(([chapter, words]) =>
+                                                words.map(({ word, meaning }) => `${chapter},${word},${meaning}`)
+                                            )
+                                            .join('\n');
+
+                                        setCsvInput(csvContent);
+                                    } else {
+                                        console.error('No valid vocabulary entries found');
+                                        alert('No valid vocabulary entries found in the CSV file. Please check the file format.');
+                                    }
+                                } else {
+                                    console.error('CSV parsing resulted in empty data');
+                                    alert('Error parsing CSV file. Please check the file format.');
+                                }
+                            },
+                            error: (error) => {
+                                console.error('Error parsing CSV:', error);
+                                alert('Error parsing CSV file. Please check the file format.');
+                            }
+                        });
+                    });
+            })
+            .catch(error => {
+                console.error('Error importing CSV file:', error);
+                alert('Error loading CSV file. Please check if the file exists and is accessible.');
+            });
+    }, [setVocabulary]);
 
     const handleSave = () => {
         try {
-            const newVocabulary = csvInput.split('\n').reduce((acc, line) => {
+            const newVocabulary = csvInput.split('\n').map(line => {
                 const [chapter, word, meaning] = line.split(',');
-                if (!chapter || !word) {
+                if (!chapter || !word || !meaning) {
                     throw new Error('Invalid CSV format');
                 }
-                const chapterKey = chapter.trim();
-                if (!acc[chapterKey]) {
-                    acc[chapterKey] = [];
-                }
-                acc[chapterKey].push({
-                    word: word.trim(),
-                    meaning: meaning.trim()
-                });
-                return acc;
-            }, {});
-
+                return { chapter: chapter.trim(), word: word.trim(), meaning: meaning.trim() };
+            });
             setVocabulary(newVocabulary);
-            setMessage('Vocabulary saved successfully!');
-            setTimeout(() => setMessage(null), 3000); // Clear message after 3 seconds
+            alert('Vocabulary saved successfully!');
         } catch (error) {
-            setMessage('Invalid CSV format. Please check your input. ' + error.message);
-            setTimeout(() => setMessage(null), 3000); // Clear message after 3 seconds
+            alert('Invalid CSV format. Please check your input.');
         }
     };
 
@@ -45,13 +86,8 @@ function VocabularyEditor({ vocabulary, setVocabulary }) {
             <div className="px-6 py-8">
                 <h2 className="text-2xl font-bold text-gray-800 mb-6">Edit Vocabulary</h2>
                 <p className="text-sm text-gray-600 mb-4">
-                    Enter vocabulary items in CSV format: chapter,word,meaning
+                    Edit vocabulary items in CSV format: chapter,word,meaning
                 </p>
-                {Object.keys(vocabulary).length === 0 && (
-                    <p className="text-lg text-gray-600 text-center mb-6">
-                        Your vocabulary list is empty. Start adding words using the CSV format below.
-                    </p>
-                )}
                 <textarea
                     rows="20"
                     className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
@@ -68,16 +104,6 @@ function VocabularyEditor({ vocabulary, setVocabulary }) {
                     </button>
                 </div>
             </div>
-            {message && (
-                <div className={`mb-4 p-4 rounded-md ${message.includes('successfully') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                    {message.includes('successfully') ? (
-                        <CheckCircleIcon className="h-5 w-5 inline mr-2" />
-                    ) : (
-                        <XCircleIcon className="h-5 w-5 inline mr-2" />
-                    )}
-                    {message}
-                </div>
-            )}
         </div>
     );
 }
