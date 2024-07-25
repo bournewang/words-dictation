@@ -14,7 +14,7 @@ function ProgressBar({ current, total }) {
         </div>
     );
 }
-function ExerciseMode({ vocabulary, wrongWords, setWrongWords, setCorrectRates, currentIndex, setCurrentIndex, practiceMode, intervals }) {
+function ExerciseMode({ vocabulary, wrongWords, setWrongWords, setCorrectRates, currentIndex, setCurrentIndex, practiceMode, intervals, updateExerciseStats }) {
     const [userInput, setUserInput] = useState('');
     const [feedback, setFeedback] = useState(null);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -27,6 +27,13 @@ function ExerciseMode({ vocabulary, wrongWords, setWrongWords, setCorrectRates, 
 
     const currentWord = vocabulary[currentIndex];
 
+    useEffect(() => {
+        // Reset currentIndex when vocabulary changes
+        setCurrentIndex(0);
+        setIsCompleted(false);
+        setCompletionMessage(null);
+    }, [vocabulary]);
+        
     useEffect(() => {
         console.log('Effect running, currentIndex, total', currentIndex, vocabulary.length);
 
@@ -69,21 +76,22 @@ function ExerciseMode({ vocabulary, wrongWords, setWrongWords, setCorrectRates, 
     const handleSubmit = () => {
         const isCorrect = userInput.toLowerCase().trim() === currentWord.word.toLowerCase().trim();
         setFeedback({
-            isCorrect,
-            message: isCorrect ? 'Correct!' : 'Incorrect',
-            meaning: currentWord.meaning
+          isCorrect,
+          message: isCorrect ? 'Correct!' : 'Incorrect',
+          meaning: currentWord.meaning
         });
-
+    
         updateCorrectRate(isCorrect);
         updateWrongWords(isCorrect);
-
+        updateExerciseStats(isCorrect);
+    
         setTimeout(() => {
-            setFeedback(null);
-            setUserInput('');
-            setShowExplanation(false);
-            moveToNextWord();
+          setFeedback(null);
+          setUserInput('');
+          setShowExplanation(false);
+          moveToNextWord();
         }, isCorrect ? intervals.correct : intervals.incorrect);
-    };
+      };
 
     const updateWrongWords = (isCorrect) => {
         if (!isCorrect && practiceMode === 'normal') {

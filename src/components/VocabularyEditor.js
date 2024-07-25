@@ -5,21 +5,32 @@ function VocabularyEditor({ vocabulary, setVocabulary }) {
     const [csvInput, setCsvInput] = useState('');
     const [message, setMessage] = useState(null);
 
-    // Convert vocabulary array to CSV string
+    // Convert vocabulary object to CSV string
     useEffect(() => {
-        const csvContent = vocabulary.map(item => `${item.chapter},${item.word},${item.meaning}`).join('\n');
+        const csvContent = Object.entries(vocabulary).flatMap(([chapter, words]) => 
+            words.map(word => `${chapter},${word.word},${word.meaning}`)
+        ).join('\n');
         setCsvInput(csvContent);
     }, [vocabulary]);
 
     const handleSave = () => {
         try {
-            const newVocabulary = csvInput.split('\n').map(line => {
+            const newVocabulary = csvInput.split('\n').reduce((acc, line) => {
                 const [chapter, word, meaning] = line.split(',');
                 if (!chapter || !word) {
                     throw new Error('Invalid CSV format');
                 }
-                return { chapter: chapter.trim(), word: word.trim(), meaning: meaning.trim() };
-            });
+                const chapterKey = chapter.trim();
+                if (!acc[chapterKey]) {
+                    acc[chapterKey] = [];
+                }
+                acc[chapterKey].push({
+                    word: word.trim(),
+                    meaning: meaning.trim()
+                });
+                return acc;
+            }, {});
+
             setVocabulary(newVocabulary);
             setMessage('Vocabulary saved successfully!');
             setTimeout(() => setMessage(null), 3000); // Clear message after 3 seconds
@@ -36,7 +47,7 @@ function VocabularyEditor({ vocabulary, setVocabulary }) {
                 <p className="text-sm text-gray-600 mb-4">
                     Enter vocabulary items in CSV format: chapter,word,meaning
                 </p>
-                {vocabulary.length === 0 && (
+                {Object.keys(vocabulary).length === 0 && (
                     <p className="text-lg text-gray-600 text-center mb-6">
                         Your vocabulary list is empty. Start adding words using the CSV format below.
                     </p>
@@ -58,8 +69,7 @@ function VocabularyEditor({ vocabulary, setVocabulary }) {
                 </div>
             </div>
             {message && (
-                <div className={`mb-4 p-4 rounded-md ${message.includes('successfully') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                    }`}>
+                <div className={`mb-4 p-4 rounded-md ${message.includes('successfully') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                     {message.includes('successfully') ? (
                         <CheckCircleIcon className="h-5 w-5 inline mr-2" />
                     ) : (
