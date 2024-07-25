@@ -85,6 +85,7 @@ function ExerciseMode({
         const isCorrect = userInput.toLowerCase().trim() === currentWord.word.toLowerCase().trim();
         setFeedback({
             isCorrect,
+            word: currentWord.word,
             message: isCorrect ? 'Correct!' : 'Incorrect',
             meaning: currentWord.meaning
         });
@@ -93,7 +94,7 @@ function ExerciseMode({
         updateWrongWords(isCorrect);
 
         setTimeout(() => {
-            setFeedback(null);
+            // setFeedback(null);
             setUserInput('');
             setShowExplanation(false);
             moveToNextWord();
@@ -241,10 +242,8 @@ function ExerciseMode({
                                         {feedback.message}
                                     </h3>
                                     <div className={`mt-2 text-sm ${feedback.isCorrect ? 'text-green-700' : 'text-red-700'}`}>
+                                        <p className="mt-1"><span className="font-medium">Word:</span> {feedback.word}</p>
                                         <p><span className="font-medium">Meaning:</span> {feedback.meaning}</p>
-                                        {!feedback.isCorrect && (
-                                            <p className="mt-1"><span className="font-medium">Correct word:</span> {currentWord.word}</p>
-                                        )}
                                     </div>
                                 </div>
                             </div>
