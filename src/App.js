@@ -185,7 +185,8 @@ function App() {
                 vocabulary={wrongWords}
                 wrongWords={wrongWords}
                 setWrongWords={setWrongWords}
-                setCorrectRates={setCorrectRates}
+                correctRates={initCorrectRates}
+                setCorrectRates={()=>{}}
                 currentIndex={0}
                 setCurrentIndex={setCurrentIndex}
                 practiceMode="wrong"
