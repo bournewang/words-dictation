@@ -7,11 +7,13 @@ import CorrectRateDisplay from './components/CorrectRateDisplay';
 import StatisticsPage from './components/StatisticsPage';
 import ChapterSelector from './components/ChapterSelector';
 import Settings from './components/Settings';
+import { loadVocabulary } from './api/loaddata';
 
+const initCorrectRates = { correct: 0, total: 0, rate: '0%' };
 function App() {
   const [vocabulary, setVocabulary] = useState([]);
   const [wrongWords, setWrongWords] = useState([]);
-  const [correctRates, setCorrectRates] = useState({ correct: 0, total: 0, rate: '0%' });
+  const [correctRates, setCorrectRates] = useState(initCorrectRates);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [intervals, setIntervals] = useState({ correct: 2000, incorrect: 3000 }); // Default intervals
   const [selectedChapter, setSelectedChapter] = useState(null);
@@ -19,6 +21,7 @@ function App() {
   const [practiceSessions, setPracticeSessions] = useState({});
   const [currentSessionIndex, setCurrentSessionIndex] = useState(0);
   const [statistics, setStatistics] = useState({});
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   // Load data from localStorage on component mount
   useEffect(() => {
@@ -42,6 +45,7 @@ function App() {
     if (savedPracticeSessions) setPracticeSessions(JSON.parse(savedPracticeSessions));
     if (savedCurrentSessionIndex) setCurrentSessionIndex(parseInt(savedCurrentSessionIndex));
 
+    loadVocabulary(setVocabulary)
   }, []);
 
   // Save data to localStorage whenever it changes
@@ -66,8 +70,18 @@ function App() {
     setCurrentIndex(0)
     // filter all vocabulary with chapter
     setChapterVocabulary(vocabulary[chapter] || []);
-    startNewPracticeSession()
+    setCorrectRates(initCorrectRates);
+    if (!isInitialLoad) {
+      startNewPracticeSession(chapter);
+    }
   };
+
+  useEffect(() => {
+    if (isInitialLoad && chapters.length > 0) {
+      onChapterChange(chapters[0]);
+      setIsInitialLoad(false);
+    }
+  }, [chapters, isInitialLoad]);
 
   const updateStatistics = (value) => {
     setStatistics(prev => {
@@ -110,9 +124,9 @@ function App() {
                 <Link to="/" className="flex-shrink-0 flex items-center">
                   Exercise
                 </Link>
-                <Link to="/editor" className="ml-6 flex items-center">
+                {/* <Link to="/editor" className="ml-6 flex items-center">
                   Vocabulary Editor
-                </Link>
+                </Link> */}
                 <Link to="/wrong-words" className="ml-6 flex items-center">
                   Wrong Words
                 </Link>

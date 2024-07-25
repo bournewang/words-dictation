@@ -50,7 +50,8 @@ function ExerciseMode({
         if (currentIndex > vocabulary.length - 1) {
             handleCompletion()
         }
-
+        console.log("current word: ", currentWord)
+        console.log("is completed: ", isCompleted)
         if (isMounted.current) {
             if (currentWord && !isCompleted) {
                 speakWord();
