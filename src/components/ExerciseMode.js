@@ -115,7 +115,9 @@ function ExerciseMode({
             setCurrentIndex(prevIndex => prevIndex + 1);
             console.log("Moved to next word:", currentIndex);
         } else {
-            handleCompletion();
+            if (practiceMode === 'normal' || (practiceMode === 'wrong' && feedback && feedback.isCorrect)) {
+                handleCompletion();
+            }            
         }
     };
 
@@ -155,6 +157,7 @@ function ExerciseMode({
                         <CheckCircleIcon className="h-5 w-5 inline mr-2" />
                         {completionMessage}
                     </div>
+                    {practiceMode === 'normal' &&
                     <button
                         onClick={resetExercise}
                         className="mt-4 w-full flex justify-center items-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
@@ -162,6 +165,7 @@ function ExerciseMode({
                         <ArrowPathIcon className="h-5 w-5 mr-2" />
                         Start Over
                     </button>
+                    }
                 </div>
             ) : (
                 <div className="px-6 py-8">
