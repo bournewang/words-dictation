@@ -320,18 +320,13 @@ function PracticeWrongWords({ wrongWords, setWrongWords, initCorrectRates, updat
   const [correctRates, setCorrectRates] = useState(initCorrectRates);
   const selectedChapter = location.state?.chapter || Object.keys(wrongWords)[0];
 
-  const handleCorrectRatesUpdate = (newRates) => {
-    setCorrectRates(newRates);
-    updateCorrectRates(selectedChapter, newRates);
-  };
-
   return (
     <ExerciseMode
       vocabulary={wrongWords[selectedChapter] || []}
       wrongWords={wrongWords}
       setWrongWords={setWrongWords}
       correctRates={correctRates}
-      setCorrectRates={handleCorrectRatesUpdate}
+      setCorrectRates={() => {}}
       currentIndex={currentIndex}
       setCurrentIndex={setCurrentIndex}
       practiceMode="wrong"
