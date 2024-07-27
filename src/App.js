@@ -112,11 +112,6 @@ function App() {
           word: currentWord.word
         });
 
-        // Update wrong words
-        if (!isCorrect) {
-          setWrongWords(prevWrongWords => addWrongWord(prevWrongWords, chapter, currentWord));
-        }
-
         return {
           ...prev,
           [chapter]: {

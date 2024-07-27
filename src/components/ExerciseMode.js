@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ArrowPathIcon, CheckCircleIcon, XCircleIcon, SpeakerWaveIcon, InformationCircleIcon } from '@heroicons/react/24/solid';
 import { speakText } from '../tts';
 import { useNavigate } from 'react-router-dom';
-import { removeWrongWord } from '../api/utils';
+import { addWrongWord, removeWrongWord } from '../api/utils';
 
 function ProgressBar({ current, total }) {
     const percentage = (current / total) * 100;
@@ -102,20 +102,15 @@ function ExerciseMode({
             };
         });
 
-        if (practiceMode === 'wrong' && isCorrect) {
-            setWrongWords(prev => {
-                const updatedChapterWords = prev[selectedChapter].filter(word => word.word !== currentWord.word);
-                return {
-                    ...prev,
-                    [selectedChapter]: updatedChapterWords
-                };
-            });
+        if (practiceMode === 'normal' && !isCorrect) {
+            setWrongWords(prev => addWrongWord(prev, selectedChapter, currentWord));
+        }else if (practiceMode === 'wrong' && isCorrect) {
+            setWrongWords(prev => removeWrongWord(prev, selectedChapter, currentWord));
         }
 
         setTimeout(() => {
             setUserInput('');
             setShowExplanation(false);
-            // moveToNextWord();
             if (practiceMode === 'normal') {
                 moveToNextWord();
               }            
