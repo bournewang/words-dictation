@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Link, useLocation } from 'react-router-dom';
 import VocabularyEditor from './components/VocabularyEditor';
 import ExerciseMode from './components/ExerciseMode';
 import WrongWordList from './components/WrongWordList';
@@ -12,15 +12,16 @@ import ChapterSessionDetails from './components/ChapterSessionDetails';
 import ChapterSummary from './components/ChapterSummary';
 import { loadVocabulary } from './api/loaddata';
 import { addWrongWord, removeWrongWord, getWrongWordsArray, reconstructWrongWords } from './api/utils';
+import { createSampleWrongWords } from './api/utils';
 
 const initCorrectRates = { correct: 0, total: 0, rate: '0%' };
 
 function App() {
   const [vocabulary, setVocabulary] = useState({});
-  const [wrongWords, setWrongWords] = useState({});
+  const [wrongWords, setWrongWords] = useState(createSampleWrongWords());
   const [correctRates, setCorrectRates] = useState(initCorrectRates);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [intervals, setIntervals] = useState({ correct: 2000, incorrect: 3000 });
+  const [intervals, setIntervals] = useState({ correct: 1000, incorrect: 3000 });
   const [selectedChapter, setSelectedChapter] = useState(null);
   const [chapterVocabulary, setChapterVocabulary] = useState([]);
   const [statistics, setStatistics] = useState({});
@@ -276,6 +277,7 @@ function App() {
                       practiceMode="normal"
                       intervals={intervals}
                       onComplete={endPracticeSession}
+                      selectedChapter={selectedChapter}
                     />
                   ) : (
                     <>
@@ -294,25 +296,14 @@ function App() {
                 </div>
               </>
             } />
-            <Route path="/wrong-words" element={<WrongWordList wrongWords={wrongWords} />} />
-            <Route path="/practice-wrong-words" element={
-              <ExerciseMode
-                vocabulary={Object.values(wrongWords).flat()}
-                wrongWords={wrongWords}
-                setWrongWords={(updater) => {
-                  setWrongWords(prev => {
-                    const updatedArray = updater(getWrongWordsArray(prev));
-                    return reconstructWrongWords(prev, updatedArray);
-                  });
-                }}
-                correctRates={initCorrectRates}
-                setCorrectRates={() => { }}
-                currentIndex={0}
-                setCurrentIndex={setCurrentIndex}
-                practiceMode="wrong"
-                intervals={intervals}
-              />
-            } />
+            <Route path="/wrong-words" element={<WrongWordList wrongWords={wrongWords} chapters={chapters} />} />
+            <Route path="/practice-wrong-words" element={<PracticeWrongWords
+              wrongWords={wrongWords}
+              setWrongWords={setWrongWords}
+              initCorrectRates={initCorrectRates}
+              updateCorrectRates={updateCorrectRates}
+              intervals={intervals}
+            />} />
             <Route path="/practice-history" element={<ChapterSessionDetails chapters={chapters} chapterSessions={chapterSessions} vocabulary={vocabulary} />} />
             <Route path="/statistics" element={<StatisticsPage statistics={statistics} />} />
             <Route path="/settings" element={<Settings intervals={intervals} setIntervals={setIntervals} />} />
@@ -320,6 +311,33 @@ function App() {
         </div>
       </div>
     </Router>
+  );
+}
+
+function PracticeWrongWords({ wrongWords, setWrongWords, initCorrectRates, updateCorrectRates, intervals }) {
+  const location = useLocation();
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [correctRates, setCorrectRates] = useState(initCorrectRates);
+  const selectedChapter = location.state?.chapter || Object.keys(wrongWords)[0];
+
+  const handleCorrectRatesUpdate = (newRates) => {
+    setCorrectRates(newRates);
+    updateCorrectRates(selectedChapter, newRates);
+  };
+
+  return (
+    <ExerciseMode
+      vocabulary={wrongWords[selectedChapter] || []}
+      wrongWords={wrongWords}
+      setWrongWords={setWrongWords}
+      correctRates={correctRates}
+      setCorrectRates={handleCorrectRatesUpdate}
+      currentIndex={currentIndex}
+      setCurrentIndex={setCurrentIndex}
+      practiceMode="wrong"
+      intervals={intervals}
+      selectedChapter={selectedChapter}
+    />
   );
 }
 

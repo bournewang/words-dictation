@@ -24,7 +24,8 @@ function ExerciseMode({
     currentIndex,
     setCurrentIndex,
     practiceMode,
-    intervals
+    intervals,
+    selectedChapter
 }) {
     const [userInput, setUserInput] = useState('');
     const [feedback, setFeedback] = useState(null);
@@ -91,11 +92,27 @@ function ExerciseMode({
             meaning: currentWord.meaning
         });
 
-        updateCorrectRate(isCorrect);
-        updateWrongWords(isCorrect);
+        setCorrectRates(prev => {
+            const correct = prev.correct + (isCorrect ? 1 : 0);
+            const total = prev.total + 1;
+            return {
+                correct,
+                total,
+                rate: ((correct / total) * 100).toFixed(0) + '%'
+            };
+        });
+
+        if (practiceMode === 'wrong' && isCorrect) {
+            setWrongWords(prev => {
+                const updatedChapterWords = prev[selectedChapter].filter(word => word.word !== currentWord.word);
+                return {
+                    ...prev,
+                    [selectedChapter]: updatedChapterWords
+                };
+            });
+        }
 
         setTimeout(() => {
-            // setFeedback(null);
             setUserInput('');
             setShowExplanation(false);
             moveToNextWord();
