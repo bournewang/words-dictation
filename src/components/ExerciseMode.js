@@ -115,16 +115,11 @@ function ExerciseMode({
         setTimeout(() => {
             setUserInput('');
             setShowExplanation(false);
-            moveToNextWord();
+            // moveToNextWord();
+            if (practiceMode === 'normal') {
+                moveToNextWord();
+              }            
         }, isCorrect ? intervals.correct : intervals.incorrect);
-    };
-
-    const updateWrongWords = (isCorrect) => {
-        if (!isCorrect && practiceMode === 'normal') {
-            // This case is handled in App.js for normal mode
-        } else if (isCorrect && practiceMode === 'wrong') {
-            setWrongWords(prev => removeWrongWord(prev, currentWord));
-        }
     };
 
     const moveToNextWord = () => {
@@ -143,16 +138,6 @@ function ExerciseMode({
         const message = `Congratulations! You've completed all ${practiceMode === 'normal' ? 'words' : 'wrong words'}.`;
         setIsCompleted(true);
         setCompletionMessage(message);
-    };
-
-    const updateCorrectRate = (isCorrect) => {
-        const correct = correctRates.correct + (isCorrect ? 1 : 0)
-        const total = correctRates.total + 1
-        setCorrectRates({
-            correct,
-            total,
-            rate: ((correct / total) * 100).toFixed(0) + '%'
-        });
     };
 
     const resetExercise = () => {
