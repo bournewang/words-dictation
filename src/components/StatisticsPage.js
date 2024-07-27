@@ -1,7 +1,7 @@
 // StatisticsPage.js
 import React from 'react';
 
-function StatisticsPage({ statistics }) {
+function StatisticsPage({ statistics, vocabulary }) {
     const chapters = Object.keys(statistics).sort();
 
     // Find the maximum number of sessions for any chapter
@@ -18,7 +18,7 @@ function StatisticsPage({ statistics }) {
         </div>
       );
     }
-    
+
   return (
     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <h1 className="text-3xl font-bold text-gray-900 mb-6">Statistics</h1>
@@ -40,7 +40,8 @@ function StatisticsPage({ statistics }) {
             {chapters.map(chapter => (
               <tr key={chapter}>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {chapter} (Total: {statistics[chapter][0].total})
+                  {chapter} 
+                  <p className="text-sm text-gray-500">Total: </p>
                 </td>
                 {[...Array(maxSessions)].map((_, index) => {
                   const session = statistics[chapter][index];
@@ -48,7 +49,7 @@ function StatisticsPage({ statistics }) {
                     <td key={index} className="px-6 py-4 whitespace-nowrap ">
                       {session ? (
                         <div>
-                            <p className="text-lg text-black-500">{((session.correct / session.total) * 100).toFixed(0)}%</p>
+                            <p className="text-lg text-black-500">{session.rate}</p>
                             <p className="text-sm text-gray-500">{session.correct}/{session.total}</p>
                           {/* <p>Correct: {session.correct}</p> */}
                           {/* <p>Wrong: {session.wrong}</p> */}

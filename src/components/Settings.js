@@ -12,7 +12,9 @@ function Settings({ intervals, setIntervals }) {
         <div className="max-w-md mx-auto bg-white shadow-2xl rounded-lg overflow-hidden">
             <div className="px-6 py-8">
                 <h2 className="text-2xl font-bold text-gray-800 mb-6">Settings</h2>
-                <div className="space-y-4">
+                <p>1000 milliseconds = 1 second</p>
+                <hr/>
+                <div className="space-y-4 mt-6">
                     <div>
                         <label htmlFor="correctInterval" className="block text-sm font-medium text-gray-700 mb-1">
                             Time interval for correct answers (milliseconds):

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ArrowPathIcon, CheckCircleIcon, XCircleIcon, SpeakerWaveIcon, InformationCircleIcon } from '@heroicons/react/24/solid';
 import { speakText } from '../tts';
 import { useNavigate } from 'react-router-dom';
+import { removeWrongWord } from '../api/utils';
 
 function ProgressBar({ current, total }) {
     const percentage = (current / total) * 100;
@@ -103,9 +104,9 @@ function ExerciseMode({
 
     const updateWrongWords = (isCorrect) => {
         if (!isCorrect && practiceMode === 'normal') {
-            setWrongWords(prev => [...new Set([...prev, currentWord])]);
+            // This case is handled in App.js for normal mode
         } else if (isCorrect && practiceMode === 'wrong') {
-            setWrongWords(prev => prev.filter(word => word.word !== currentWord.word));
+            setWrongWords(prev => removeWrongWord(prev, currentWord));
         }
     };
 
@@ -117,7 +118,7 @@ function ExerciseMode({
         } else {
             if (practiceMode === 'normal' || (practiceMode === 'wrong' && feedback && feedback.isCorrect)) {
                 handleCompletion();
-            }            
+            }
         }
     };
 
@@ -158,13 +159,13 @@ function ExerciseMode({
                         {completionMessage}
                     </div>
                     {practiceMode === 'normal' &&
-                    <button
-                        onClick={resetExercise}
-                        className="mt-4 w-full flex justify-center items-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                    >
-                        <ArrowPathIcon className="h-5 w-5 mr-2" />
-                        Start Over
-                    </button>
+                        <button
+                            onClick={resetExercise}
+                            className="mt-4 w-full flex justify-center items-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                        >
+                            <ArrowPathIcon className="h-5 w-5 mr-2" />
+                            Start Over
+                        </button>
                     }
                 </div>
             ) : (
