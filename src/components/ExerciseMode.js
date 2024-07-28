@@ -93,7 +93,12 @@ function ExerciseMode({
           meaning: currentWord.meaning
         });
     
-        updateSessionAndStats(currentWord.word, isCorrect);
+        if (practiceMode === 'normal') {
+            updateSessionAndStats(currentWord.word, isCorrect);
+        }else if (practiceMode === 'wrong') {
+            const newWrongWords = removeWrongWord(wrongWords, selectedChapter, currentWord);
+            setWrongWords(newWrongWords)
+        }
     
         setTimeout(() => {
           setUserInput('');
@@ -101,18 +106,6 @@ function ExerciseMode({
           setFeedback(null);
         }, isCorrect ? intervals.correct : intervals.incorrect);
       };
-
-    const moveToNextWord = () => {
-        console.log("Moving to next word:", currentIndex);
-        if (currentIndex < vocabulary.length - 1) {
-            setCurrentIndex(prevIndex => prevIndex + 1);
-            console.log("Moved to next word:", currentIndex);
-        } else {
-            if (practiceMode === 'normal' || (practiceMode === 'wrong' && feedback && feedback.isCorrect)) {
-                handleCompletion();
-            }
-        }
-    };
 
     const handleCompletion = () => {
         const message = `Congratulations! You've completed all ${practiceMode === 'normal' ? 'words' : 'wrong words'}.`;

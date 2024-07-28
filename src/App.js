@@ -272,6 +272,7 @@ function PracticeWrongWords({ wrongWords, setWrongWords, initCorrectRates, inter
       setCorrectRates={() => {}}
       currentIndex={currentIndex}
       setCurrentIndex={setCurrentIndex}
+      updateSessionAndStats={()=>{}}
       practiceMode="wrong"
       intervals={intervals}
       selectedChapter={selectedChapter}
