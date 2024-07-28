@@ -95,7 +95,7 @@ function ExerciseMode({
     
         if (practiceMode === 'normal') {
             updateSessionAndStats(currentWord.word, isCorrect);
-        }else if (practiceMode === 'wrong') {
+        }else if (practiceMode === 'wrong' && isCorrect) {
             const newWrongWords = removeWrongWord(wrongWords, selectedChapter, currentWord);
             setWrongWords(newWrongWords)
         }
