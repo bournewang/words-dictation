@@ -3,7 +3,8 @@ import React, { useState, useMemo } from 'react';
 import { CheckCircleIcon, XCircleIcon, MinusCircleIcon } from '@heroicons/react/24/solid';
 import ChapterSelector from './ChapterSelector';
 
-function ChapterSessionDetails({ chapters, chapterSessions, vocabulary }) {
+function ChapterSessionDetails({ chapterSessions, vocabulary }) {
+    const chapters = Object.keys(chapterSessions);
     const [selectedChapter, setSelectedChapter] = useState(chapters[0] || '');
 
     const sessionData = useMemo(() => {

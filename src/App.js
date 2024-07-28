@@ -10,6 +10,7 @@ import Settings from './components/Settings';
 import PracticeSessionControls from './components/PracticeSessionControls';
 import ChapterSessionDetails from './components/ChapterSessionDetails';
 import ChapterSummary from './components/ChapterSummary';
+import { createSampleWrongWords, generateSampleChapterSessions, generateSampleStatistics } from './data/sample';
 import { loadVocabulary } from './api/loaddata';
 import { addWrongWord, 
   addWordToChapterSession,
@@ -18,23 +19,23 @@ import { addWrongWord,
   addEmptyStatistic,
   updateLastStatistic,
   calculateNewCorrectRates,
-  getLastStatistic
+  getLastStatistic,
+  isDev
 } from './api/utils';
-import { createSampleWrongWords } from './api/utils';
 
 const initCorrectRates = { correct: 0, total: 0, rate: '0%' };
 
 function App() {
   const [vocabulary, setVocabulary] = useState({});
-  const [wrongWords, setWrongWords] = useState(createSampleWrongWords());
+  const [wrongWords, setWrongWords] = useState(isDev() ? createSampleWrongWords() : {});
+  const [chapterSessions, setChapterSessions] = useState(isDev() ? generateSampleChapterSessions() : {});
+  const [statistics, setStatistics] = useState(isDev() ? generateSampleStatistics() : {});
   const [correctRates, setCorrectRates] = useState(initCorrectRates);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [intervals, setIntervals] = useState({ correct: 1000, incorrect: 3000 });
   const [selectedChapter, setSelectedChapter] = useState(null);
   const [chapterVocabulary, setChapterVocabulary] = useState([]);
-  const [statistics, setStatistics] = useState({});
   const [isInitialLoad, setIsInitialLoad] = useState(true);
-  const [chapterSessions, setChapterSessions] = useState({});
   const [isPracticing, setIsPracticing] = useState(false);
 
   // Load data from localStorage on component mount
