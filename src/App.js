@@ -11,7 +11,15 @@ import PracticeSessionControls from './components/PracticeSessionControls';
 import ChapterSessionDetails from './components/ChapterSessionDetails';
 import ChapterSummary from './components/ChapterSummary';
 import { loadVocabulary } from './api/loaddata';
-import { addWrongWord, removeWrongWord, getWrongWordsArray, reconstructWrongWords } from './api/utils';
+import { addWrongWord, 
+  addWordToChapterSession,
+  startNewChapterSession,
+  hasUnfinishedSession,
+  addEmptyStatistic,
+  updateLastStatistic,
+  calculateNewCorrectRates,
+  getLastStatistic
+} from './api/utils';
 import { createSampleWrongWords } from './api/utils';
 
 const initCorrectRates = { correct: 0, total: 0, rate: '0%' };
@@ -97,102 +105,45 @@ function App() {
     }
   }, [chapters, isInitialLoad]);
 
-  const updateCorrectRates = (value) => {
-    setCorrectRates(value);
+  const updateSessionAndStats = (word, isCorrect) => {
+    setChapterSessions(prev => 
+      addWordToChapterSession(prev, selectedChapter, word, isCorrect)
+    );
 
-    setChapterSessions(prev => {
-      const chapter = selectedChapter;
-      const sessionData = prev[chapter];
-      if (sessionData) {
-        const updatedSessions = [...sessionData.sessions];
-        const currentWord = chapterVocabulary[currentIndex];
-        const isCorrect = value.correct > correctRates.correct;
-        updatedSessions[updatedSessions.length - 1].push({
-          isCorrect,
-          word: currentWord.word
-        });
+    setCorrectRates(prev => calculateNewCorrectRates(prev, isCorrect));
 
-        return {
-          ...prev,
-          [chapter]: {
-            ...sessionData,
-            currentIndex: currentIndex + 1,
-            sessions: updatedSessions
-          }
-        };
-      }
-      return prev;
-    });
+    setStatistics(prev => updateLastStatistic(prev, selectedChapter, isCorrect, correctRates));
 
-    // Update statistics only when the session is completed or at specific intervals
-    setStatistics(prev => {
-      const chapter = selectedChapter;
-      const chapterStats = prev[chapter] || [];
-      const lastStat = chapterStats[chapterStats.length - 1];
+    if (!isCorrect) {
+      setWrongWords(prev => addWrongWord(prev, selectedChapter, chapterVocabulary[currentIndex]));
+    }
 
-      // Only update if it's a new session or we've reached a milestone (e.g., every 10 words)
-      if (!lastStat || value.total % 10 === 0 || value.total === chapterVocabulary.length) {
-        return {
-          ...prev,
-          [chapter]: [...chapterStats, value]
-        };
-      }
-
-      // Otherwise, just update the last statistic
-      return {
-        ...prev,
-        [chapter]: [...chapterStats.slice(0, -1), value]
-      };
-    });
+    setCurrentIndex(prev => prev + 1);
   };
 
   const startNewPracticeSession = () => {
-    setChapterSessions(prev => ({
-      ...prev,
-      [selectedChapter]: {
-        currentIndex: 0,
-        sessions: [...(prev[selectedChapter]?.sessions || []), []]
-      }
-    }));
+    setChapterSessions(prev => startNewChapterSession(prev, selectedChapter));
     setCurrentIndex(0);
-    setCorrectRates(initCorrectRates);
+    setCorrectRates({ correct: 0, total: 0, rate: '0%' });
     setIsPracticing(true);
 
-    // Add a new rate to statistics when starting a new session
-    setStatistics(prev => ({
-      ...prev,
-      [selectedChapter]: [
-        ...(prev[selectedChapter] || []),
-        { correct: 0, total: 0, rate: '0%' }
-      ]
-    }));
+    setStatistics(prev => addEmptyStatistic(prev, selectedChapter));
   };
 
   const resumePracticeSession = () => {
     const sessionData = chapterSessions[selectedChapter];
     if (sessionData) {
-      setCurrentIndex(sessionData.currentIndex);
       const lastSession = sessionData.sessions[sessionData.sessions.length - 1];
-      const correct = lastSession.filter(attempt => attempt.isCorrect).length;
-      const total = lastSession.length;
-      const newCorrectRates = {
-        correct,
-        total,
-        rate: total > 0 ? `${((correct / total) * 100).toFixed(0)}%` : '0%'
-      };
-      setCorrectRates(newCorrectRates);
+      const completedWords = Object.keys(lastSession).length;
+      setCurrentIndex(completedWords);
+
+      // Use the new helper function to get the last statistic
+      const lastStat = getLastStatistic(statistics, selectedChapter);
+      setCorrectRates(lastStat);
+
       setIsPracticing(true);
     }
-  };
-
-  const endPracticeSession = () => {
-    setIsPracticing(false);
-  };
-
-  const hasUnfinishedSession = useMemo(() => {
-    const sessionData = chapterSessions[selectedChapter];
-    return sessionData && sessionData.currentIndex < chapterVocabulary.length;
-  }, [chapterSessions, selectedChapter, chapterVocabulary]);
+  };  
 
   return (
     <Router>
@@ -236,13 +187,10 @@ function App() {
                     <div className="mt-4">
                       <h3 className="text-lg font-medium mb-2">Previous Sessions:</h3>
                       <ul className="space-y-1">
-                        {chapterSessions[selectedChapter]?.sessions.map((session, index) => {
-                          const correct = session.filter(attempt => attempt.isCorrect).length;
-                          const total = session.length;
-                          const rate = total > 0 ? `${((correct / total) * 100).toFixed(0)}%` : '0%';
+                        {statistics[selectedChapter]?.map((session, index) => {
                           return (
                             <li key={index} className="text-sm">
-                              Session {index + 1}: {rate} ({correct}/{total})
+                              Session {index + 1}: {session.rate} 
                             </li>
                           );
                         })}
@@ -266,13 +214,12 @@ function App() {
                       wrongWords={wrongWords}
                       setWrongWords={setWrongWords}
                       correctRates={correctRates}
-                      setCorrectRates={updateCorrectRates}
                       currentIndex={currentIndex}
-                      setCurrentIndex={setCurrentIndex}
+                      updateSessionAndStats={updateSessionAndStats}
                       practiceMode="normal"
                       intervals={intervals}
-                      onComplete={endPracticeSession}
                       selectedChapter={selectedChapter}
+                      onComplete={() => setIsPracticing(false)}
                     />
                   ) : (
                     <>
@@ -284,7 +231,9 @@ function App() {
                       <PracticeSessionControls
                         onStartNewSession={startNewPracticeSession}
                         onResumePractice={resumePracticeSession}
-                        hasUnfinishedSession={hasUnfinishedSession}
+                        chapterSessions={chapterSessions}
+                        selectedChapter={selectedChapter}
+                        vocabularyLength={chapterVocabulary.length}
                       />
                     </>
                   )}
@@ -296,7 +245,6 @@ function App() {
               wrongWords={wrongWords}
               setWrongWords={setWrongWords}
               initCorrectRates={initCorrectRates}
-              updateCorrectRates={updateCorrectRates}
               intervals={intervals}
             />} />
             <Route path="/practice-history" element={<ChapterSessionDetails chapters={chapters} chapterSessions={chapterSessions} vocabulary={vocabulary} />} />
@@ -309,7 +257,7 @@ function App() {
   );
 }
 
-function PracticeWrongWords({ wrongWords, setWrongWords, initCorrectRates, updateCorrectRates, intervals }) {
+function PracticeWrongWords({ wrongWords, setWrongWords, initCorrectRates, intervals }) {
   const location = useLocation();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [correctRates, setCorrectRates] = useState(initCorrectRates);

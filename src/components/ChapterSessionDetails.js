@@ -9,16 +9,13 @@ function ChapterSessionDetails({ chapters, chapterSessions, vocabulary }) {
     const sessionData = useMemo(() => {
         if (!selectedChapter || !vocabulary[selectedChapter]) return [];
 
-        const allWords = vocabulary[selectedChapter];
+        const chapterVocabulary = vocabulary[selectedChapter];
         const sessions = chapterSessions[selectedChapter]?.sessions || [];
-        const sessionCount = sessions.length;
 
-        return allWords.map(wordObj => ({
+        return chapterVocabulary.map(wordObj => ({
             word: wordObj.word,
             meaning: wordObj.meaning,
-            attempts: sessions.map(session =>
-                session.find(attempt => attempt.word === wordObj.word)?.isCorrect
-            )
+            attempts: sessions.map(session => session[wordObj.word])
         }));
     }, [selectedChapter, chapterSessions, vocabulary]);
 
@@ -27,7 +24,7 @@ function ChapterSessionDetails({ chapters, chapterSessions, vocabulary }) {
     return (
         <div>
             <div className="fixed top-20 right-4 w-64">
-                <ChapterSelector chapters={chapters} selectedChapter={null} onChapterChange={setSelectedChapter} />
+                <ChapterSelector chapters={chapters} selectedChapter={selectedChapter} onChapterChange={setSelectedChapter} />
             </div>
             <div className="mr-72">
                 <div className="overflow-x-auto">
@@ -42,7 +39,7 @@ function ChapterSessionDetails({ chapters, chapterSessions, vocabulary }) {
                                 </th>
                                 {[...Array(sessionCount)].map((_, index) => (
                                     <th key={index} scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Practice {index + 1}
+                                        Session {index + 1}
                                     </th>
                                 ))}
                             </tr>

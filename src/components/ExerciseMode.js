@@ -23,6 +23,7 @@ function ExerciseMode({
     setCorrectRates,
     currentIndex,
     setCurrentIndex,
+    updateSessionAndStats,
     practiceMode,
     intervals,
     selectedChapter
@@ -86,36 +87,20 @@ function ExerciseMode({
     const handleSubmit = () => {
         const isCorrect = userInput.toLowerCase().trim() === currentWord.word.toLowerCase().trim();
         setFeedback({
-            isCorrect,
-            word: currentWord.word,
-            message: isCorrect ? 'Correct!' : 'Incorrect',
-            meaning: currentWord.meaning
+          isCorrect,
+          word: currentWord.word,
+          message: isCorrect ? 'Correct!' : 'Incorrect',
+          meaning: currentWord.meaning
         });
-
-        setCorrectRates(prev => {
-            const correct = prev.correct + (isCorrect ? 1 : 0);
-            const total = prev.total + 1;
-            return {
-                correct,
-                total,
-                rate: ((correct / total) * 100).toFixed(0) + '%'
-            };
-        });
-
-        if (practiceMode === 'normal' && !isCorrect) {
-            setWrongWords(prev => addWrongWord(prev, selectedChapter, currentWord));
-        }else if (practiceMode === 'wrong' && isCorrect) {
-            setWrongWords(prev => removeWrongWord(prev, selectedChapter, currentWord));
-        }
-
+    
+        updateSessionAndStats(currentWord.word, isCorrect);
+    
         setTimeout(() => {
-            setUserInput('');
-            setShowExplanation(false);
-            if (practiceMode === 'normal') {
-                moveToNextWord();
-              }            
+          setUserInput('');
+          setShowExplanation(false);
+          setFeedback(null);
         }, isCorrect ? intervals.correct : intervals.incorrect);
-    };
+      };
 
     const moveToNextWord = () => {
         console.log("Moving to next word:", currentIndex);
