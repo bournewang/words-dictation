@@ -5,8 +5,6 @@
   "dependencies": {
     "@headlessui/react": "^2.1.2",
     "@heroicons/react": "^2.1.5",
-    "@testing-library/jest-dom": "^5.17.0",
-    "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
     "microsoft-cognitiveservices-speech-sdk": "^1.38.0",
     "papaparse": "^5.4.1",
@@ -47,6 +45,8 @@
     }
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.4.8",
+    "@testing-library/react": "^16.0.0",
     "raw-loader": "^4.0.2"
   }
 }
