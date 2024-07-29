@@ -103,7 +103,7 @@ function ExerciseMode({
         setTimeout(() => {
           setUserInput('');
           setShowExplanation(false);
-          setFeedback(null);
+        //   setFeedback(null);
         }, isCorrect ? intervals.correct : intervals.incorrect);
       };
 
