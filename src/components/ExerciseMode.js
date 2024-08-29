@@ -85,7 +85,10 @@ function ExerciseMode({
     };
 
     const handleSubmit = () => {
-        const isCorrect = userInput.toLowerCase().trim() === currentWord.word.toLowerCase().trim();
+        const normalizedUserInput = userInput.toLowerCase().trim().replace(/-/g, ' ');
+        const normalizedCorrectWord = currentWord.word.toLowerCase().trim().replace(/-/g, ' ');
+        const isCorrect = normalizedUserInput === normalizedCorrectWord;
+        
         setFeedback({
           isCorrect,
           word: currentWord.word,
